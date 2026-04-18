@@ -137,3 +137,81 @@ pip install --upgrade --force-reinstall <package>
 ```
 
 Or use Python 3.12 if available.
+
+---
+
+## Plotly Express + Numpy Dependency
+
+**Pattern:** `ImportError: Plotly Express requires numpy to be installed`
+
+**Fix:** Always include `numpy` explicitly in requirements, even when using `"plotly[express]"`:
+```bash
+pip install "plotly[express]" numpy --break-system-packages
+```
+When using isolated_webtest.py, always add `numpy` as a separate requirement argument.
+
+---
+
+## JSON Unicode Encoding (WebSocket/API responses)
+
+**Pattern:** Non-ASCII characters (Chinese, etc.) appear as `\uXXXX` in browser or garbled
+
+**Fix:** Always use `ensure_ascii=False` in `json.dumps()`:
+```python
+# Wrong - non-ASCII becomes \uXXXX
+json.dumps({"title": "中文標題"})
+
+# Correct - unicode preserved
+json.dumps({"title": "中文標題"}, ensure_ascii=False)
+
+# Helper function pattern:
+def json_dumps(data):
+    return json.dumps(data, ensure_ascii=False, default=str)
+```
+
+**When:** This affects any JSON API that serves data to web frontends (WebSocket, REST API, etc.)
+
+---
+
+## D3.js Graph - Node Labels Show Incomplete Info
+
+**Pattern:** D3 force-directed graph shows source names (e.g. "Yahoo", "BBC") as labels, making nodes unidentifiable
+
+**Fix:** Show the article title instead, truncated:
+```javascript
+// Wrong - source name is not descriptive enough
+nodes.append('text').text(d => d.source.slice(0, 10))
+
+// Correct - show article title as label
+nodes.append('text')
+    .text(d => d.title.length > 35 ? d.title.slice(0, 35) + '...' : d.title)
+    .each(function(d) {
+        // Wrap long labels into multiple lines
+        if (d.label.length > 30) {
+            const words = d.label.split(' ');
+            // ... line wrapping logic
+        }
+    });
+```
+
+**Lesson:** Source name alone is not informative enough for news graphs. Always use the article title (truncated) as the visible label.
+
+---
+
+## D3 Graph - Too Many Nodes/Edges
+
+**Pattern:** Graph is a "hairball" - too many overlapping nodes and edges to read
+
+**Fix:** Add a node limit slider and require more shared keywords for edges:
+```javascript
+// Require 3+ shared keywords (not 2+)
+if (shared.length >= 3) {
+    edges.push({...});
+}
+
+// Add slider control
+<input type="range" min="5" max="30" value="15" oninput="updateNodeLimit(+this.value)">
+```
+
+**Lesson:** Start with fewer nodes (default 15) and let user adjust. Require 3+ shared keywords prevents noise.
+
