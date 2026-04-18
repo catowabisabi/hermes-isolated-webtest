@@ -44,7 +44,7 @@ def check_python_venv():
 def create_hermes_dir():
     """Create ~/.hermes/skills directory if needed."""
     skills_dir = os.path.dirname(SKILL_DIR)
-    if not os.path.exists(sKILLS_DIR):
+    if not os.path.exists(skills_dir):
         os.makedirs(skills_dir, exist_ok=True)
         print(f"✅ Created {skills_dir}")
     else:
