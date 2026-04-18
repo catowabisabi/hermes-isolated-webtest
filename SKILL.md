@@ -210,17 +210,19 @@ if __name__ == "__main__":
 ### CLI Usage
 
 ```bash
-# Basic test
-python3 ~/.hermes/skills/isolated-webtest/scripts/isolated_webtest.py \
+# Basic test - include numpy explicitly even if using plotly[express]
+python3 isolated_webtest.py \
     /path/to/project \
     dashboard/app.py \
     8050 \
     requests \
     dash \
-    plotly
+    plotly \
+    "plotly[express]" \
+    numpy
 
-# With full requirements
-python3 ~/.hermes/skills/isolated-webtest/scripts/isolated_webtest.py \
+# Test with full requirements (include numpy!)
+python3 isolated_webtest.py \
     /mnt/c/Users/enoma/Desktop/golden_news \
     dashboard/app.py \
     8050 \
@@ -228,9 +230,18 @@ python3 ~/.hermes/skills/isolated-webtest/scripts/isolated_webtest.py \
     httpx \
     dash \
     plotly \
+    "plotly[express]" \
     flask-socketio \
-    websockets
+    websockets \
+    flask \
+    feedparser \
+    anthropic \
+    openai \
+    python-dateutil \
+    numpy
 ```
+
+**IMPORTANT:** Always include `numpy` explicitly even when using `"plotly[express]"` as a requirement string. Plotly Express sometimes doesn't pull numpy in automatically on first install, causing `ImportError: Plotly Express requires numpy to be installed`.
 
 ## Testing Multiple Environments in Parallel
 
@@ -275,16 +286,27 @@ The test script includes auto-detection and fixes for:
 | `SyntaxError` | Parse traceback, identify file and line |
 | Dash `css.config.links` error | Patch to use `index_string` instead |
 
-## Workflow for Agents
+## Critical Workflow Rule
 
-1. **Load this skill** when task involves testing webapp/API
-2. **Create isolated venv** before running any test code
-3. **Run tests in background** with proper timeout and error capture
-4. **Collect all errors** before making any changes
-5. **Fix all issues** in one batch
-6. **Re-test** to confirm all fixes work
-7. **Commit once** when everything passes
-8. **Clean up** venvs when done
+**ALWAYS test in isolated env BEFORE asking user to pull.** The correct flow is:
+
+1. **Create isolated venv** (using `isolated_webtest.py`)
+2. **Run all tests** until no errors
+3. **Fix any issues found** in the isolated env
+4. **Commit ONCE** when everything passes
+5. **Then notify user** to pull
+
+**NEVER**: change → ask user to pull → wait for error → repeat
+
+This prevents wasting the user's time on preventable errors.
+
+## Error Handling
+
+When tests fail:
+- Parse all errors from stderr
+- Attempt auto-fix for known patterns
+- Re-test in isolated env
+- Only commit when tests pass completely
 
 ## File Structure
 
