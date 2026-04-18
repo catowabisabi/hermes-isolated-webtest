@@ -7,8 +7,8 @@ Automated testing skill for webapps, APIs, and new features using isolated Pytho
 ```bash
 # One-line install for Hermes Agent
 python3 -c "
-import urllib.request; 
-exec(urllib.request.urlopen('https://raw.githubusercontent.com/catowabisabi/hermes-isolated-webtest/main/scripts/install.py').read().decode())
+import urllib.request;
+exec(urllib.request.urlopen('https://raw.githubusercontent.com/catowabisabi/hermes-isolated-webtest/master/scripts/install.py').read().decode())
 "
 ```
 
